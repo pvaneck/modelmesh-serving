@@ -12,7 +12,7 @@ We provide an install script to quickly run ModelMesh Serving with a provisioned
 
 ModelMesh Serving is namespace scoped, meaning all of its components must exist within a single namespace and only one instance of ModelMesh Serving can be installed per namespace.Multiple ModelMesh Serving instances can be installed in separate namespaces within the cluster.
 
-## Deployed Components
+## Deployed Componentsss
 
 |            | Type             | Pod                        | Count | Default CPU request/limit per-pod | Default mem request/limit per-pod |
 | ---------- | ---------------- | -------------------------- | ----- | --------------------------------- | --------------------------------- |

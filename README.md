@@ -48,7 +48,7 @@ Please read our [contributing guide](./CONTRIBUTING.md) for details on contribut
 ### Building Images
 
 ```bash
-# Build develop image
+# Build develop imagesss
 make build.develop
 
 # After building the develop image,  build the runtime image
