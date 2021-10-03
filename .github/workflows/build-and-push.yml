@@ -37,11 +37,8 @@ jobs:
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           echo $VERSION
 
-          # Strip "v" prefix from tag name
-          # [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          echo $VERSION
-
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=latest
 
+          docker tag kserve/modelmesh-controller:latest ${{ env.IMAGE_NAME }}:$VERSION
           docker push ${{ env.IMAGE_NAME }}:$VERSION
