@@ -232,6 +232,7 @@ Available attributes in the `ServingRuntime` spec:
 | `containers[ ].command`            | Executable command found in the provided image                                                                                                                            |
 | `containers[ ].args`               | List of command line arguments as strings                                                                                                                                 |
 | `containers[ ].resources`          | Kubernetes [limits or requests](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits)                                       |
+| `containers[ ].env `               | List of command line arguments as strings                                                                                                                                 |
 | `containers[ ].imagePullPolicy`    | The container image pull policy                                                                                                                                           |
 | `containers[ ].workingDir`         | The working directory for current container                                                                                                                               |
 | `grpcEndpoint`                     | The [port](#endpoint-formats) for model management requests                                                                                                               |

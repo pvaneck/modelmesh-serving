@@ -23,14 +23,21 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/kserve/kserve/pkg/apis/serving/v1beta1"
+	kserveConstants "github.com/kserve/kserve/pkg/constants"
 	"github.com/kserve/modelmesh-serving/apis/serving/common"
 	"github.com/kserve/modelmesh-serving/apis/serving/v1alpha1"
-	"github.com/kserve/modelmesh-serving/apis/serving/v1beta1"
 
 	corev1 "k8s.io/api/core/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	secretKeyAnnotation  = "serving.kserve.io/secretKey"
+	schemaPathAnnotation = "serving.kserve.io/schemaPath"
+	runtimeAnnotation    = "serving.kserve.io/servingRuntime"
 )
 
 var _ PredictorRegistry = (*InferenceServiceRegistry)(nil)
@@ -43,14 +50,14 @@ func BuildBasePredictorFromInferenceService(isvc *v1beta1.InferenceService) (*v1
 	p := &v1alpha1.Predictor{}
 
 	// Check if resource should be reconciled.
-	if isvc.ObjectMeta.Annotations[v1beta1.DeploymentModeAnnotation] != v1beta1.MMDeploymentModeVal {
+	if isvc.ObjectMeta.Annotations[kserveConstants.DeploymentMode] != string(kserveConstants.ModelMeshDeployment) {
 		return nil, nil
 	}
 
 	p.ObjectMeta = isvc.ObjectMeta
 
-	framework, frameworkSpec := isvc.Spec.Predictor.GetPredictorFramework()
-	runtimeFromAnnotation, runtimeAnnotationExists := isvc.ObjectMeta.Annotations[v1beta1.RuntimeAnnotation]
+	framework, frameworkSpec := getPredictorFramework(&isvc.Spec.Predictor)
+	runtimeFromAnnotation, runtimeAnnotationExists := isvc.ObjectMeta.Annotations[runtimeAnnotation]
 
 	if isvc.Spec.Predictor.Model != nil {
 
@@ -59,7 +66,7 @@ func BuildBasePredictorFromInferenceService(isvc *v1beta1.InferenceService) (*v1
 		}
 		if runtimeAnnotationExists {
 			return nil, fmt.Errorf("the InferenceService %v cannot have both the model spec and the "+
-				"runtime annotation %v", isvc.Name, v1beta1.RuntimeAnnotation)
+				"runtime annotation %v", isvc.Name, runtimeAnnotation)
 		}
 
 		p.Spec = v1alpha1.PredictorSpec{
@@ -113,7 +120,7 @@ func processInferenceServiceStorage(inferenceService *v1beta1.InferenceService, 
 		pSpec = &inferenceService.Spec.Predictor.Model.PredictorExtensionSpec
 
 	} else {
-		_, pSpec = inferenceService.Spec.Predictor.GetPredictorFramework()
+		_, pSpec = getPredictorFramework(&inferenceService.Spec.Predictor)
 	}
 
 	storageUri := pSpec.StorageURI
@@ -182,19 +189,41 @@ func processInferenceServiceStorage(inferenceService *v1beta1.InferenceService, 
 
 	// alternative source for SecretKey for backwards compatibility
 	if secretKey == nil {
-		if sk, ok := inferenceService.ObjectMeta.Annotations[v1beta1.SecretKeyAnnotation]; ok {
+		if sk, ok := inferenceService.ObjectMeta.Annotations[secretKeyAnnotation]; ok {
 			secretKey = &sk
 		}
 	}
 
 	// alternative source for SchemaPath for backwards compatibility
 	if schemaPath == nil {
-		if sp, ok := inferenceService.ObjectMeta.Annotations[v1beta1.SchemaPathAnnotation]; ok {
+		if sp, ok := inferenceService.ObjectMeta.Annotations[schemaPathAnnotation]; ok {
 			schemaPath = &sp
 		}
 	}
 
 	return
+}
+
+func getPredictorFramework(s *v1beta1.PredictorSpec) (string, *v1beta1.PredictorExtensionSpec) {
+	if s.XGBoost != nil {
+		return "xgboost", &s.XGBoost.PredictorExtensionSpec
+	} else if s.LightGBM != nil {
+		return "lightgbm", &s.LightGBM.PredictorExtensionSpec
+	} else if s.SKLearn != nil {
+		return "sklearn", &s.SKLearn.PredictorExtensionSpec
+	} else if s.Tensorflow != nil {
+		return "tensorflow", &s.Tensorflow.PredictorExtensionSpec
+	} else if s.ONNX != nil {
+		return "onnx", &s.ONNX.PredictorExtensionSpec
+	} else if s.PyTorch != nil {
+		return "pytorch", &s.PyTorch.PredictorExtensionSpec
+	} else if s.Triton != nil {
+		return "triton", &s.Triton.PredictorExtensionSpec
+	} else if s.PMML != nil {
+		return "pmml", &s.PMML.PredictorExtensionSpec
+	} else {
+		return "", nil
+	}
 }
 
 func (isvcr InferenceServiceRegistry) Get(ctx context.Context, nname types.NamespacedName) (*v1alpha1.Predictor, error) {
