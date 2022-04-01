@@ -68,7 +68,7 @@ while (("$#")); do
       usage
     fi
     ;;
-  -* | --*=) # unsupported flags
+  -* | --*=) # unsupported flags.
     echo "Error: Unsupported flag $1" >&2
     usage
     ;;

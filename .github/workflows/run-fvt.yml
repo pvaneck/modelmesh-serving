@@ -45,15 +45,38 @@ jobs:
           sed -i 's/maxSurge:.*$/maxSurge: 0/' config/internal/base/deployment.yaml.tmpl
           sed -i 's/maxUnavailable:.*$/maxUnavailable: 100%/' config/internal/base/deployment.yaml.tmpl
       - name: Build Controller image
+        # After building the controller image, remove the develop image to save space.
         run: |
+          df -h
+          docker system df
           make build.develop
           ./scripts/build_docker.sh --target runtime --tag ${{ env.IMAGE_TAG }}
+          docker images
+          df -h
+          docker rmi kserve/modelmesh-controller-develop:latest
+          df -h
+          docker system df
+          docker rmi $(cat .develop_image_name)
+          df -h
+          docker system df
+          df -h
+          docker system df
+          docker images
       - name: Install ModelMesh Serving
         run: |
           kubectl create ns modelmesh-serving
           kubectl create ns modelmesh-user
           kubectl apply -f https://raw.githubusercontent.com/kserve/kserve/master/test/crds/serving.kserve.io_inferenceservices.yaml
           ./scripts/install.sh --namespace modelmesh-serving -u modelmesh-user --fvt --dev-mode-logging
+      - name: Clear Disk
+        run: |
+          df -h
+          docker system df
+          echo "Pruning"
+          docker image prune -a -f
+          docker system df
+          docker images
+          df -h
       - name: Pre-pull runtime images
         run: |
           docker pull nvcr.io/nvidia/tritonserver:21.06.1-py3
@@ -63,6 +86,14 @@ jobs:
           docker images
           kubectl get pods
           kubectl get servingruntimes
+          df -h
+          docker system df
+      - name: Check Disk
+        run: |
+          df -h
+          docker system df
+          docker images
+          df -h
       - name: Run FVTs
         run: |
           export NAMESPACE=modelmesh-serving
