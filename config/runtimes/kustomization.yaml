@@ -14,7 +14,7 @@
 resources:
   - triton-2.x.yaml
   - mlserver-0.x.yaml
-  - ovms-1.x.yaml
+  # - ovms-1.x.yaml
 
 images:
   - name: tritonserver-2
