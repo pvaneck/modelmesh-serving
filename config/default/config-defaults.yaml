@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # These are the system defaults which users can override with a user config
-podsPerRuntime: 2
+podsPerRuntime: 1
 headlessService: true
 modelMeshImage:
   name: pvaneckw/modelmesh
   tag: latest
 modelMeshResources:
   requests:
-    cpu: "300m"
-    memory: "448Mi"
+    cpu: "100m"
+    memory: "256Mi"
   limits:
     cpu: "3"
     memory: "448Mi"
