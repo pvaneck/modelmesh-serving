@@ -55,11 +55,11 @@ spec:
           chmod 777 /models/_triton_models;
           exec tritonserver
           "--model-repository=/models/_triton_models"
+          "--backend-directory=/opt/triton/backends"
           "--model-control-mode=explicit"
           "--strict-model-config=false"
           "--strict-readiness=false"
           "--allow-http=true"
-          "--allow-sagemaker=false"
           '
       resources:
         requests:
